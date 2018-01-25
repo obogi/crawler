@@ -31,27 +31,21 @@ def get_top100_list(refresh_html=False):
     os.makedirs(path_data_dir,exist_ok=True)
 
 
-    # 1~50, 50~100위 웹페이지 주소
-    url_chart_realtime_50 = 'https://www.melon.com/chart/index.htm'
-    url_chart_realtime_100 = 'https://www.melon.com/chart/index.htm#params%5Bidx%5D=51'\
+    # 1~100위  웹페이지 주
+    url_chart_realtime = 'https://www.melon.com/chart/index.htm'
 
-    file_path = os.path.join(path_data_dir, 'chart_realtime_50.html')
+
+    file_path = os.path.join(path_data_dir, 'chart_realtime.html')
     try:
-        with open(file_path, 'wt') as f:
+        file_mado = 'wt' if refresh_html else 'xt'
+        with open(file_path, 'wt' if refresh_html else 'xt') as f:
             response = requests.get('https://www.melon.com/chart/index.htm')
             source = response.text
             f.write(source)
     except FileExistsError:
         print(f'"file_path}" file is already exists!')
 
-    file_path = os.path.join(path_data_dir, 'chart_realtime_100.html')
-    if not os._exists(file_path):
-        response = requests.get('https://www.melon.com/chart/index.htm#params%5Bidx%5D=51')
-        source = response.text
-        with open(file_path, 'wt') as f:
-            f.write(source)
-    else:
-        print(f'file_path: \n{file_path}')
+
 
 
 

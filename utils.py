@@ -14,7 +14,7 @@ def get_top100_list(refresh_html=False):
     :return: 곡 정보 dict의 list
     """
     # utils가 있는
-    path_module = os.path.abspath(__name__)
+    path_module = os.path.abspath(__file__)
     print(f'path_module: \n{path_module}')
 
     # 프로젝트 컨테이너 폴더 경로
@@ -60,6 +60,7 @@ def get_top100_list(refresh_html=False):
         title = tr.find('div', class_='rank01').find('a').text
         artist = tr.find('div', class_='rank02').find('a').text
         album = tr.find('div', class_='rank03').find('a').text
+        song_id = tr.find('div', class_='rank04').find('a').text
         url_img_cover = tr.find('a', class_='image_typeAll').find('img').get('src')
         # http://cdnimg.melon.co.kr/cm/album/images/101/28/855/10128855_500.jpg/melon/resize/120/quality/80/optimize
         # .* -> 임의 문자의 최대 반복
@@ -74,7 +75,7 @@ def get_top100_list(refresh_html=False):
             'url_img_cover': url_img_cover,
             'artist': artist,
             'album': album,
-            'song_id': '<추가해주세요>',
+            'song_id': song_id,
         })
     return result
 

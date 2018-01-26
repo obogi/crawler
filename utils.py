@@ -6,15 +6,13 @@ from bs4 import BeautifulSoup
 
 # utils가 있는
 PATH_MODULE = os.path.abspath(__file__)
-print(f'path_module: \n{PATH_MODULE}')
 
 # 프로젝트 컨테이너 폴더 경로
 ROOT_DIR = os.path.dirname(PATH_MODULE)
-print(f'root_dir: \n{ROOT_DIR}')
 
 # data/ 폴더 경로
 DATA_DIR = os.path.join(ROOT_DIR, 'data')
-print(f'path_data_dir: \n{DATA_DIR}')
+
 
 def get_top100_list(refresh_html=False):
     """
@@ -24,8 +22,6 @@ def get_top100_list(refresh_html=False):
     :param refresh_html: True일 경우, 무조건 새 HTML파일을 사이트에서 받아와 덮어씀
     :return: 곡 정보 dict의 list
     """
-
-
     # 만약에 path_data_dir에 해당하는 폴더가 없을 경우 생성해준다
     os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -61,9 +57,9 @@ def get_top100_list(refresh_html=False):
         title = tr.find('div', class_='rank01').find('a').text
         artist = tr.find('div', class_='rank02').find('a').text
         album = tr.find('div', class_='rank03').find('a').text
+        url_img_cover = tr.find('a', class_='image_typeAll').find('img').get('src')
         song_id_href = tr.find('a', class_='song_info').get('href')
         song_id = re.search(r"\('(\d+)'\)", song_id_href).group(1)
-        url_img_cover = tr.find('a', class_='image_typeAll').find('img').get('src')
         # http://cdnimg.melon.co.kr/cm/album/images/101/28/855/10128855_500.jpg/melon/resize/120/quality/80/optimize
         # .* -> 임의 문자의 최대 반복
         # \. -> '.' 문자
@@ -106,6 +102,26 @@ def get_song_detail(song_id, refresh_html=False):
             }
             response = requests.get(url, params)
             source = response.text
-            f.write(source)
+            # 만약 받은 파일의 길이가 지나치게 짧을 경우 예외를 일으키고
+            # 예외 블럭에서 기록한 파일을 삭제하도록 함
+            file_length = f.write(source)
+            if file_length < 10:
+                raise ValueError('파일이 너무 짧습니다')
     except FileExistsError:
         print(f'"{file_path}" file is already exists!')
+    except ValueError:
+        # 파일이 너무 짧은 경우
+        os.remove(file_path)
+        return
+
+    source = open(file_path, 'rt').read()
+    soup = BeautifulSoup(source, 'lxml')
+    # div.song_name의 자식 strong요소의 바로 다음 형제요소의 값을 양쪽 여백을 모두 잘라낸다
+    # 아래의 HTML과 같은 구조
+    # <div class="song_name">
+    #   <strong>곡명</strong>
+    #
+    #              Heart Shaker
+    # </div>
+    title = soup.find('div', class_='song_name').strong.next_sibling.strip()
+    # title = soup.find('div', class_='song_name').get_text(strip=True)[2:]
